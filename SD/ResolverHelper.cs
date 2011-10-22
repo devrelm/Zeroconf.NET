@@ -38,7 +38,7 @@ namespace Network.ZeroConf
         public static EndPoint GetEndPoint()
         {
             EndPoint ep = new EndPoint();
-            ep.DomainName = Environment.MachineName + "._local.";
+            ep.DomainName = Environment.MachineName + ".local.";
             foreach (NetworkInterface iface in NetworkInterface.GetAllNetworkInterfaces())
             {
                 if (iface.OperationalStatus == OperationalStatus.Up)
