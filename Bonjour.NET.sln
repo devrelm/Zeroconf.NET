@@ -41,9 +41,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Network.Rtp", "Network.Rtp\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Network.Wol", "Network.Wol\Network.Wol.csproj", "{DAEFDF26-4C41-4CFB-8D94-16DE53F5C30B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Network.Rtmp", "Network.Rtmp\Network.Rtmp.csproj", "{087733F7-0B8F-4B61-B934-3E66CBD33C0A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Network.Dhcp", "Network.Dhcp\Network.Dhcp.csproj", "{A5860248-8E32-43FC-9900-2AC73ADB69B2}"
+EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 20
+		SccNumberOfProjects = 22
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs09
 		SccLocalPath0 = .
@@ -107,6 +111,12 @@ Global
 		SccProjectUniqueName19 = Network.Wol\\Network.Wol.csproj
 		SccProjectName19 = Network.Wol
 		SccLocalPath19 = Network.Wol
+		SccProjectUniqueName20 = Network.Rtmp\\Network.Rtmp.csproj
+		SccProjectName20 = Network.Rtmp
+		SccLocalPath20 = Network.Rtmp
+		SccProjectUniqueName21 = Network.Dhcp\\Network.Dhcp.csproj
+		SccProjectName21 = Network.Dhcp
+		SccLocalPath21 = Network.Dhcp
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -189,6 +199,14 @@ Global
 		{DAEFDF26-4C41-4CFB-8D94-16DE53F5C30B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DAEFDF26-4C41-4CFB-8D94-16DE53F5C30B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DAEFDF26-4C41-4CFB-8D94-16DE53F5C30B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{087733F7-0B8F-4B61-B934-3E66CBD33C0A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{087733F7-0B8F-4B61-B934-3E66CBD33C0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{087733F7-0B8F-4B61-B934-3E66CBD33C0A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{087733F7-0B8F-4B61-B934-3E66CBD33C0A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A5860248-8E32-43FC-9900-2AC73ADB69B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A5860248-8E32-43FC-9900-2AC73ADB69B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A5860248-8E32-43FC-9900-2AC73ADB69B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A5860248-8E32-43FC-9900-2AC73ADB69B2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

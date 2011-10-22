@@ -11,7 +11,7 @@ namespace Network
 
         #region IRequest<BinaryRequest> Members
 
-        public BinaryRequest GetRequest(BinaryReader stream)
+        public BinaryRequest GetRequest(Stream stream)
         {
             BinaryRequest request = new BinaryRequest();
             byte[] buffer = new byte[1024];
@@ -24,7 +24,7 @@ namespace Network
             return request;
         }
 
-        public void WriteTo(System.IO.Stream stream)
+        public void WriteTo(Stream stream)
         {
             this.stream.WriteTo(stream);
         }
@@ -43,7 +43,7 @@ namespace Network
         {
             using (MemoryStream stream = new MemoryStream(requestBytes))
             {
-                return GetRequest(new BinaryReader(stream));
+                return GetRequest(stream);
             }
         }
 

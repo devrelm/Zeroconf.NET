@@ -190,17 +190,7 @@ namespace Network.Bonjour
                 {
                     if (((string)q.DomainName).EndsWith(Protocol))
                     {
-                        foreach (Network.Dns.EndPoint ep in Addresses)
-                        {
-                            foreach (var address in ep.Addresses)
-                            {
-                                item.Additionals.Add(new Answer() { Class = Class.IN, DomainName = Protocol, Ttl = 5, Type = address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork ? Network.Dns.Type.A : Network.Dns.Type.AAAA, ResponseData = new HostAddress() { Address = address } });
-                            }
-                            item.Answers.Add(new Answer() { Class = Class.IN, DomainName = Protocol, Ttl = 5, Type = Network.Dns.Type.SRV, ResponseData = new Srv() { Port = ep.Port, Target = ep.DomainName } });
-                            item.Answers.Add(new Answer() { Class = Class.IN, DomainName = Protocol, Ttl = 5, Type = Network.Dns.Type.TXT, ResponseData = new Txt() { Properties = properties } });
-                        }
-
-                        //publisher.Send(item, item.From);
+                        FillMessage(item, Ttl);
                     }
                 }
             }
@@ -288,16 +278,25 @@ namespace Network.Bonjour
             m.AuthoritativeAnswer = true;
             m.ID = 0;
             m.ResponseCode = ResponseCode.NoError;
+            FillMessage(m, ttl);
+
+            publisher.Send(m, m.From);
+        }
+
+        private void FillMessage(Message m, uint ttl)
+        {
             foreach (Network.Dns.EndPoint ep in Addresses)
             {
-                m.Additionals.Add(new Answer() { Class = Class.IN, DomainName = Name + "." + Protocol, Ttl = ttl, Type = Network.Dns.Type.SRV, ResponseData = new Srv() { Port = ep.Port, Target = ep.DomainName } });
-                m.Additionals.Add(new Answer() { Class = Class.IN, DomainName = Name + "." + Protocol, Ttl = ttl, Type = Network.Dns.Type.TXT, ResponseData = new Txt() { Properties = properties } });
                 foreach (var address in ep.Addresses)
                     m.Additionals.Add(new Answer() { Class = Class.IN, DomainName = Name + "." + Protocol, Ttl = ttl, Type = address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork ? Network.Dns.Type.A : Network.Dns.Type.AAAA, ResponseData = new HostAddress() { Address = address } });
                 m.Answers.Add(new Answer() { Class = Class.IN, DomainName = Protocol, Ttl = ttl, Type = Network.Dns.Type.PTR, ResponseData = new Ptr() { DomainName = Name + "." + Protocol } });
+                if (properties.Count > 0)
+                {
+                    m.Additionals.Add(new Answer() { Class = Class.IN, DomainName = Name + "." + Protocol, Ttl = ttl, Type = Network.Dns.Type.TXT, ResponseData = new Txt() { Properties = properties } });
+                }
+                if (ep.Port > 0)
+                    m.Additionals.Add(new Answer() { Class = Class.IN, DomainName = Name + "." + Protocol, Ttl = ttl, Type = Network.Dns.Type.SRV, ResponseData = new Srv() { Port = ep.Port, Target = ep.DomainName } });
             }
-
-            publisher.Send(m, m.From);
         }
 
         #region IService Members
@@ -308,15 +307,18 @@ namespace Network.Bonjour
             if (iService is Service)
             {
                 Service service = (Service)iService;
-                foreach (var endpoint in service.addresses)
+                if (service.addresses != null && service.addresses.Count > 0)
                 {
-                    var newEndPoint = addresses.SingleOrDefault(ep => ep.DomainName.ToString() == endpoint.DomainName.ToString() && ep.Port == endpoint.Port);
-                    if (newEndPoint != null)
-                        newEndPoint.Merge(endpoint);
-                    else
-                        AddAddress(endpoint);
+                    foreach (var endpoint in service.addresses)
+                    {
+                        var newEndPoint = addresses.SingleOrDefault(ep => ep.DomainName.ToString() == endpoint.DomainName.ToString() && ep.Port == endpoint.Port);
+                        if (newEndPoint != null)
+                            newEndPoint.Merge(endpoint);
+                        else
+                            AddAddress(endpoint);
+                    }
+                    State = State.Updated;
                 }
-                State = State.Updated;
             }
         }
 

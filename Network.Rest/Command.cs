@@ -26,7 +26,7 @@ namespace Network.Rest
         protected override HttpRequest BuildRequest()
         {
             HttpRequest request = new HttpRequest(Uri);
-            request.KeepAlive = true;
+            //request.KeepAlive = true;
             request.ContentType = "text/xml";
             request.Method = Method;
             return request;

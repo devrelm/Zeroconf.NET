@@ -9,7 +9,7 @@ namespace Network.Dns
 {
     public abstract class ResponseData
     {
-        public abstract void WriteTo(System.IO.BinaryWriter writer);
+        public abstract void WriteTo(Stream writer);
 
         internal static ResponseData Get(Type type, System.IO.BinaryReader reader)
         {
@@ -68,19 +68,18 @@ namespace Network.Dns
         public byte[] Bytes { get; protected set; }
         public ushort Length { get { return (ushort)Bytes.Length; } }
 
-        public override void WriteTo(BinaryWriter writer)
+        public override void WriteTo(Stream writer)
         {
             ushort length = Length;
-            writer.Write(Message.ToBytes(Length));
+            BinaryHelper.Write(writer, length);
 
             if (length > 0)
-                writer.Write(Bytes);
+                BinaryHelper.Write(writer, Bytes);
         }
 
         internal static ResponseData Get(BinaryReader reader)
         {
-            ushort byteCount;
-            Message.FromBytes(reader.ReadBytes(2), out byteCount);
+            ushort byteCount = BinaryHelper.ReadUInt16(reader);
             UnknownResponseData data = new UnknownResponseData();
             if (byteCount > 0)
                 data.Bytes = reader.ReadBytes(byteCount);
@@ -95,16 +94,15 @@ namespace Network.Dns
     {
         public string CNAME { get; set; }
 
-        public override void WriteTo(System.IO.BinaryWriter writer)
+        public override void WriteTo(Stream writer)
         {
-            writer.Write(Message.ToBytes((ushort)Encoding.UTF8.GetByteCount(CNAME)));
-            writer.Write(Encoding.UTF8.GetBytes(CNAME));
+            BinaryHelper.Write(writer, ((ushort)Encoding.UTF8.GetByteCount(CNAME)));
+            BinaryHelper.Write(writer, Encoding.UTF8.GetBytes(CNAME));
         }
 
         internal static CName Get(BinaryReader reader)
         {
-            ushort byteCount;
-            Message.FromBytes(reader.ReadBytes(2), out byteCount);
+            ushort byteCount = BinaryHelper.ReadUInt16(reader);
             CName cName = new CName();
             cName.CNAME = Encoding.UTF8.GetString(reader.ReadBytes(byteCount), 0, byteCount);
             return cName;
@@ -118,17 +116,17 @@ namespace Network.Dns
         internal static HostAddress Get(BinaryReader reader)
         {
             ushort byteCount;
-            Message.FromBytes(reader.ReadBytes(2), out byteCount);
+            BinaryHelper.FromBytes(reader.ReadBytes(2), out byteCount);
             HostAddress ha = new HostAddress();
             ha.Address = new IPAddress(reader.ReadBytes(byteCount));
             return ha;
         }
 
-        public override void WriteTo(System.IO.BinaryWriter writer)
+        public override void WriteTo(Stream writer)
         {
             byte[] address = Address.GetAddressBytes();
-            writer.Write(Message.ToBytes((ushort)address.Length));
-            writer.Write(address);
+            BinaryHelper.Write(writer, (ushort)address.Length);
+            BinaryHelper.Write(writer, address);
         }
 
         public override string ToString()
@@ -140,18 +138,17 @@ namespace Network.Dns
     {
         public DomainName DomainName { get; set; }
 
-        public override void WriteTo(System.IO.BinaryWriter writer)
+        public override void WriteTo(Stream writer)
         {
-            writer.Write(Message.ToBytes(DomainName.GetByteCount()));
+            BinaryHelper.Write(writer, DomainName.GetByteCount());
             DomainName.WriteTo(writer);
         }
 
         internal static Ptr Get(BinaryReader reader)
         {
             Ptr p = new Ptr();
-            ushort byteCount;
             //useless datalength
-            Message.FromBytes(reader.ReadBytes(2), out byteCount);
+            reader.ReadBytes(2);
 
             p.DomainName = DomainName.Get(reader);
             //index += byteCount;
@@ -161,13 +158,13 @@ namespace Network.Dns
 
     public class Srv : ResponseData
     {
-        public override void WriteTo(System.IO.BinaryWriter writer)
+        public override void WriteTo(Stream writer)
         {
 
-            writer.Write(Message.ToBytes((ushort)(6 + Target.GetByteCount())));
-            writer.Write(Message.ToBytes(Priority));
-            writer.Write(Message.ToBytes(Weight));
-            writer.Write(Message.ToBytes(Port));
+            BinaryHelper.Write(writer, ((ushort)(6 + Target.GetByteCount())));
+            BinaryHelper.Write(writer, Priority);
+            BinaryHelper.Write(writer, Weight);
+            BinaryHelper.Write(writer, Port);
             Target.WriteTo(writer);
         }
 
@@ -179,15 +176,11 @@ namespace Network.Dns
         internal static Srv Get(BinaryReader reader)
         {
             Srv srv = new Srv();
-            ushort s;
             //Useless Datalength
             reader.ReadBytes(2);
-            Message.FromBytes(reader.ReadBytes(2), out s);
-            srv.Priority = s;
-            Message.FromBytes(reader.ReadBytes(2), out s);
-            srv.Weight = s;
-            Message.FromBytes(reader.ReadBytes(2), out s);
-            srv.Port = s;
+            srv.Priority = BinaryHelper.ReadUInt16(reader);
+            srv.Weight = BinaryHelper.ReadUInt16(reader);
+            srv.Port = BinaryHelper.ReadUInt16(reader);
             srv.Target = DomainName.Get(reader);
             return srv;
         }
@@ -200,7 +193,7 @@ namespace Network.Dns
             Properties = new Dictionary<string, string>();
         }
 
-        public override void WriteTo(System.IO.BinaryWriter writer)
+        public override void WriteTo(Stream writer)
         {
             ushort length = 0;
             List<KeyValuePair<byte[], byte>> bytes = new List<KeyValuePair<byte[], byte>>();
@@ -213,11 +206,11 @@ namespace Network.Dns
                 length += (ushort)kvpBytes.Length;
                 length++;
             }
-            writer.Write(Message.ToBytes(length));
+            BinaryHelper.Write(writer, length);
             foreach (var properties in bytes)
             {
-                writer.Write(properties.Value);
-                writer.Write(properties.Key);
+                writer.WriteByte(properties.Value);
+                BinaryHelper.Write(writer, properties.Key);
             }
         }
 
@@ -250,9 +243,7 @@ namespace Network.Dns
         internal static Txt Get(BinaryReader reader)
         {
             Txt txt = new Txt();
-            ushort byteCount, byteRead = 0;
-            //Useless Datalength
-            Message.FromBytes(reader.ReadBytes(2), out byteCount);
+            ushort byteCount = BinaryHelper.ReadUInt16(reader), byteRead = 0;
             while (byteRead < byteCount)
             {
                 byte propertyLength = reader.ReadByte();

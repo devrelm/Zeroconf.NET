@@ -1,0 +1,130 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{A5860248-8E32-43FC-9900-2AC73ADB69B2}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Network.Dhcp</RootNamespace>
+    <AssemblyName>Network.Dhcp</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Options\AreAllSubnetsLocalOption.cs" />
+    <Compile Include="Options\ArpCacheTimeoutOption.cs" />
+    <Compile Include="Options\BooleanOption.cs" />
+    <Compile Include="Options\BootFileSizeOption.cs" />
+    <Compile Include="Options\BroadcastAddressOption.cs" />
+    <Compile Include="Options\ClassIdentifierOption.cs" />
+    <Compile Include="Options\ClientIdentifierOption.cs" />
+    <Compile Include="Options\CookieServerOption.cs" />
+    <Compile Include="Options\DefaultIpTtlOption.cs" />
+    <Compile Include="Options\DhcpMessageTypeOption.cs" />
+    <Compile Include="Options\DomainNameOption.cs" />
+    <Compile Include="Options\DomainNameServerOption.cs" />
+    <Compile Include="Options\EthernetEncapsulationOption.cs" />
+    <Compile Include="Options\ExtensionsPathOption.cs" />
+    <Compile Include="Options\HostNameOption.cs" />
+    <Compile Include="Options\ImpressServerOption.cs" />
+    <Compile Include="Options\InterfaceMtuOption.cs" />
+    <Compile Include="Options\IpAddressLeaseTimeOption.cs" />
+    <Compile Include="Options\IPForwardingEnabledOption.cs" />
+    <Compile Include="Options\IPRangeOption.cs" />
+    <Compile Include="Options\LogServerOption.cs" />
+    <Compile Include="Options\LprServerOption.cs" />
+    <Compile Include="Options\MaskSuplierRequiredOption.cs" />
+    <Compile Include="Options\MaximumDatagramReassemblySizeOption.cs" />
+    <Compile Include="Options\MaximumDhcpMessageSizeOption.cs" />
+    <Compile Include="Options\MeritDumpOption.cs" />
+    <Compile Include="Message.cs" />
+    <Compile Include="Options\MessageOption.cs" />
+    <Compile Include="Options\NameServerOption.cs" />
+    <Compile Include="Options\NetbiosOverTcpIpDatagramDistributionServerOption.cs" />
+    <Compile Include="Options\NetbiosOverTcpIpNameServerOption.cs" />
+    <Compile Include="Options\NetbiosOverTcpIpNodeTypeOption.cs" />
+    <Compile Include="Options\NetbiosOverTcpIpScopeOption.cs" />
+    <Compile Include="Options\NetworkInformationServersOption.cs" />
+    <Compile Include="Options\NetworkInformationServiceDomainOption.cs" />
+    <Compile Include="Options\NetworkTimeProtocolServersOption.cs" />
+    <Compile Include="Options\NonLocalSourceRootingEnabledOption.cs" />
+    <Compile Include="Options\Option.cs" />
+    <Compile Include="Options\OptionOverloadOption.cs" />
+    <Compile Include="Options\PadOption.cs" />
+    <Compile Include="Options\ParameterRequestListOption.cs" />
+    <Compile Include="Options\PathMtuAgingTimeoutOption.cs" />
+    <Compile Include="Options\PathMtuPleateauTableOption.cs" />
+    <Compile Include="Options\PerformMaskDiscoveryOption.cs" />
+    <Compile Include="Options\PerformRouterDiscoveryEnabledOption.cs" />
+    <Compile Include="Options\PolicyFilterOption.cs" />
+    <Compile Include="Options\StringOption.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Options\RebindingTimeValueOption.cs" />
+    <Compile Include="Options\RenewalTimeValueOption.cs" />
+    <Compile Include="Options\RequestedIpOption.cs" />
+    <Compile Include="Options\ResourceLocationServerOption.cs" />
+    <Compile Include="Options\RootPathOption.cs" />
+    <Compile Include="Options\RouterOption.cs" />
+    <Compile Include="Options\RouterSolicitationAddressOption.cs" />
+    <Compile Include="Options\ServerIdentifierOption.cs" />
+    <Compile Include="Options\StaticRouteOption.cs" />
+    <Compile Include="Options\SubnetMaskOption.cs" />
+    <Compile Include="Options\SwapServerOption.cs" />
+    <Compile Include="Options\TcpDefaultTtlOption.cs" />
+    <Compile Include="Options\TcpKeepAliveGarbageOption.cs" />
+    <Compile Include="Options\TcpKeepAliveIntervalOption.cs" />
+    <Compile Include="Options\TimeOffsetOption.cs" />
+    <Compile Include="Options\TimeServerOption.cs" />
+    <Compile Include="Options\TrailerEncapsulationOption.cs" />
+    <Compile Include="Options\VendorSpecificationInformationOption.cs" />
+    <Compile Include="Options\XWindowSystemDisplayManagerOption.cs" />
+    <Compile Include="Options\XWindowSystemFontServerOption.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Network\Network.csproj">
+      <Project>{C05DF064-DD81-49AE-91D2-9D8BBCC76F1F}</Project>
+      <Name>Network %28Network\Network%29</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

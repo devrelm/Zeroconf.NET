@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 
 namespace Network.Rtp
 {
@@ -28,6 +29,11 @@ namespace Network.Rtp
         public uint SSRC { get; set; }
 
         #region IClientRequest Members
+
+        public void WriteTo(Stream stream)
+        {
+            WriteTo(new BinaryWriter(stream));
+        }
 
         public void WriteTo(System.IO.BinaryWriter stream)
         {

@@ -7,7 +7,24 @@ using System.Net.Sockets;
 
 namespace Network.Rest
 {
-    public class HttpRequest : HttpMessage, IServerRequest<HttpRequest>, IClientRequest
+    public class HttpRequest : HttpRequest<HttpRequest>
+    {
+        public HttpRequest()
+        {
+        }
+
+        public HttpRequest(string uriString)
+            : base(uriString)
+        {
+
+        }
+        public HttpRequest(Uri uri)
+            : base(uri)
+        {
+        }
+    }
+    public class HttpRequest<T> : HttpMessage, IServerRequestReader<T>, IClientRequestWriter
+        where T : HttpRequest<T>, new()
     {
         public HttpRequest()
         {
@@ -16,8 +33,21 @@ namespace Network.Rest
             Method = "GET";
         }
 
-        public HttpRequest(string uriString) : base(uriString) { }
-        public HttpRequest(Uri uri) : base(uri) { }
+        public HttpRequest(string uriString)
+            : base(uriString)
+        {
+            Protocol = HttpProtocol.HTTP11;
+            AcceptEncoding = new string[] { "gzip" };
+            Method = "GET";
+
+        }
+        public HttpRequest(Uri uri)
+            : base(uri)
+        {
+            Protocol = HttpProtocol.HTTP11;
+            AcceptEncoding = new string[] { "gzip" };
+            Method = "GET";
+        }
 
         public string Method { get; set; }
 
@@ -52,7 +82,10 @@ namespace Network.Rest
             }
             set
             {
-                Headers["ACCEPT-ENCODING"] = string.Join(";", value);
+                if (value == null || value.Length == 0)
+                    Headers.Remove("ACCEPT-ENCODING");
+                else
+                    Headers["ACCEPT-ENCODING"] = string.Join(";", value);
             }
         }
 
@@ -143,9 +176,9 @@ namespace Network.Rest
             return null;
         }
 
-        private static HttpRequest Parse(TextReader reader)
+        private static T Parse(TextReader reader)
         {
-            HttpRequest request = new HttpRequest();
+            T request = new T();
             //METHOD URI VERSION
             string line = reader.ReadLine();
             if (line == null)
@@ -164,19 +197,26 @@ namespace Network.Rest
 
 
 
-        public HttpRequest GetRequest(BinaryReader stream)
+        public T GetRequest(BinaryReader stream)
         {
             TextReader reader = new StreamReader(stream.BaseStream);
             return Parse(reader);
 
         }
 
-        public HttpRequest GetRequest(byte[] bytes)
+        public T GetRequest(Stream stream)
+        {
+            TextReader reader = new StreamReader(stream);
+            return Parse(reader);
+
+        }
+
+        public T GetRequest(byte[] bytes)
         {
             return Parse(Encoding.UTF8.GetString(bytes));
         }
 
-        public static HttpRequest Parse(string requestString)
+        public static T Parse(string requestString)
         {
             StringReader reader = new StringReader(requestString);
             return Parse(reader);
@@ -185,6 +225,12 @@ namespace Network.Rest
         #endregion
 
         #region IRequest Members
+
+        public void WriteTo(Stream stream)
+        {
+            byte[] bytes = GetBytes();
+            stream.Write(bytes, 0, bytes.Length);
+        }
 
         public void WriteTo(BinaryWriter stream)
         {

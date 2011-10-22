@@ -220,7 +220,7 @@ namespace Network
         }
 
         public Server(ushort port)
-            : this(IPAddress.Loopback, port)
+            : this(IPAddress.Any, port)
         {
 
         }
@@ -242,7 +242,7 @@ namespace Network
 
         protected override void Treat(Stream client, IPEndPoint remote)
         {
-            RequestEventArgs<TRequest, TResponse> rea = GetEventArgs(new TRequest().GetRequest(new BinaryReader(client)));
+            RequestEventArgs<TRequest, TResponse> rea = GetEventArgs(new TRequest().GetRequest(client));
             rea.Host = remote;
             Treat(rea, client);
         }
@@ -267,13 +267,7 @@ namespace Network
         protected void Send(TResponse response, Stream client)
         {
             if (client.CanWrite)
-            {
-                using (BinaryWriter writer = new BinaryWriter(client, Encoding.UTF8))
-                {
-                    response.WriteTo(writer);
-                    writer.Flush();
-                }
-            }
+                response.WriteTo(client);
         }
 
         public void Send(TResponse response, IPEndPoint client)

@@ -34,7 +34,7 @@ namespace Network.Wol
 
         #region IClientResponse<WolMessage> Members
 
-        public WolMessage GetResponse(System.IO.BinaryReader stream)
+        public WolMessage GetResponse(Stream stream)
         {
             throw new NotImplementedException();
         }
@@ -50,13 +50,13 @@ namespace Network.Wol
 
         static readonly byte[] buffer = new byte[6];
 
-        public void WriteTo(System.IO.BinaryWriter stream)
+        public void WriteTo(Stream stream)
         {
             byte[] buffer = WolMessage.buffer;
-            stream.Write(buffer);
+            BinaryHelper.Write(stream, buffer);
             buffer = MacAddress.GetAddressBytes();
             for (int i = 0; i < 16; i++)
-                stream.Write(buffer);
+                BinaryHelper.Write(stream, buffer);
         }
 
         public byte[] GetBytes()

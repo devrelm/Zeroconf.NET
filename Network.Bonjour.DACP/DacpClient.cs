@@ -61,7 +61,19 @@ namespace Network.Bonjour.DACP
             return new DacpEventArgs(response);
         }
 
-        public int SessionId { get; set; }
+        private int? sessionId;
+
+        public int SessionId
+        {
+            get
+            {
+                if (!sessionId.HasValue)
+                    Login();
+                return sessionId.Value;
+            }
+            set { sessionId = value; }
+        }
+
 
         public void Login()
         {
@@ -78,6 +90,91 @@ namespace Network.Bonjour.DACP
             }
             else
                 throw new NotSupportedException();
+        }
+
+        public DaapMessage GetStatus()
+        {
+            return GetStatusForRevision(1);
+        }
+
+        int notificationRevisionNumber = 1;
+
+        public DaapMessage GetNewStatus()
+        {
+            DaapMessage result = GetStatusForRevision(notificationRevisionNumber);
+            if (result.Name == "cmst")
+                notificationRevisionNumber = result["cmsr"][0].ToInt32();
+            return result;
+        }
+
+        private DaapMessage GetStatusForRevision(int revisionNumber)
+        {
+            DacpRequest request = new DacpRequest();
+            request.Uri = "/ctrl-int/1/playstatusupdate?revision-number=" + revisionNumber + "&session-id=" + SessionId;
+            DacpResponse response = Send(request);
+            return response.Content;
+        }
+
+        public void PlayPause()
+        {
+            DacpRequest request = new DacpRequest();
+            request.Uri = "/ctrl-int/1/playpause?session-id=" + SessionId;
+            Send(request);
+        }
+        public void Next()
+        {
+            DacpRequest request = new DacpRequest();
+            request.Uri = "/ctrl-int/1/nextitem?session-id=" + SessionId;
+            Send(request);
+        }
+        public void Previous()
+        {
+            DacpRequest request = new DacpRequest();
+            request.Uri = "/ctrl-int/1/previtem?session-id=" + SessionId;
+            Send(request);
+        }
+
+        public int GetVolume()
+        {
+            return GetProperty("dmcp.volume")["cmvo"][0].ToInt32();
+        }
+
+        public DaapMessage GetProperty(string property)
+        {
+            DacpRequest request = new DacpRequest();
+            request.Uri = "/ctrl-int/1/getproperty?properties=" + property + "&session-id=" + SessionId;
+            var response = Send(request);
+            if (response.Content["mstt"][0].ToInt32() == 200)
+                return response.Content;
+            return null;
+        }
+
+        public DaapMessage SetProperty(string property, string value)
+        {
+            DacpRequest request = new DacpRequest();
+            request.Uri = "/ctrl-int/1/setproperty?" + property + "=" + value + "&session-id=" + SessionId;
+            return Send(request).Content;
+        }
+
+        public DaapMessage GetDatabases()
+        {
+            DacpRequest request = new DacpRequest();
+            request.Uri = "/databases?revision-id=1&session-id=" + SessionId;
+            return Send(request).Content;
+        }
+
+        public DaapMessage GetPlaylists(int dbId)
+        {
+            DacpRequest request = new DacpRequest();
+            request.Uri = "/databases/" + dbId + "containers?meta=dmap.itemid,dmap.itemname,dma.persistentid,com.apple.itunes.smart-playlist&revision-id=1&session-id=" + SessionId;
+            return Send(request).Content;
+        }
+
+        public DaapMessage GetPlaylist(int dbId, int plid)
+        {
+            DacpRequest request = new DacpRequest();
+            request.Uri = "/databases/" + dbId + "/containers/" + plid + "/items?type=music&meta=dmap.itemkind,dmap.itemid,dmap.containeritemid&revision-id=1&session-id=" + SessionId;
+            return Send(request).Content;
         }
 
         public DaapMessage GetSpeakers()

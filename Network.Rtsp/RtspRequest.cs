@@ -5,7 +5,7 @@ using Network.Rest;
 
 namespace Network.Rtsp
 {
-    public class RtspRequest : HttpRequest, IServerRequest<RtspRequest>
+    public class RtspRequest : HttpRequest<RtspRequest>, IServerRequest<RtspRequest>
     {
         public RtspRequest()
         {

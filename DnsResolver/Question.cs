@@ -46,8 +46,8 @@ namespace Network.Dns
         {
             List<byte> bytes = new List<byte>();
             bytes.AddRange(DomainName.ToBytes());
-            bytes.AddRange(Message.ToBytes((ushort)Type));
-            bytes.AddRange(Message.ToBytes((ushort)Class));
+            bytes.AddRange(BinaryHelper.ToBytes((ushort)Type));
+            bytes.AddRange(BinaryHelper.ToBytes((ushort)Class));
             //bytes.AddRange(Message.ToBytes((ushort)(((ushort)(ushort.MaxValue >> 15 << 15)) + (ushort)Class)));
             return bytes.ToArray();
         }
@@ -57,10 +57,10 @@ namespace Network.Dns
             Question q = new Question();
             q.DomainName = DomainName.FromBytes(bytes, ref index);
             ushort s;
-            Message.FromBytes(bytes, index, out s);
+            BinaryHelper.FromBytes(bytes, index, out s);
             index += 2;
             q.Type = (QType)s;
-            Message.FromBytes(bytes, index, out s);
+            BinaryHelper.FromBytes(bytes, index, out s);
             q.Class = (QClass)s;
             index += 2;
             return q;
@@ -77,11 +77,11 @@ namespace Network.Dns
 
         #region IResponse Members
 
-        public void WriteTo(BinaryWriter writer)
+        public void WriteTo(Stream stream)
         {
-            DomainName.WriteTo(writer);
-            writer.Write(Message.ToBytes((ushort)Type));
-            writer.Write(Message.ToBytes((ushort)Class));
+            DomainName.WriteTo(stream);
+            BinaryHelper.Write(stream, (ushort)Type);
+            BinaryHelper.Write(stream, (ushort)Class);
         }
 
         public byte[] GetBytes()
@@ -91,14 +91,12 @@ namespace Network.Dns
 
         #endregion
 
-        public static Question Get(BinaryReader reader)
+        public static Question Get(BinaryReader stream)
         {
             Question q = new Question();
-            q.DomainName = DomainName.Get(reader);
-            ushort s;
-            Message.FromBytes(reader.ReadBytes(2), out s);
-            q.Type = (QType)s;
-            Message.FromBytes(reader.ReadBytes(2), out s);
+            q.DomainName = DomainName.Get(stream);
+            q.Type = (QType)BinaryHelper.ReadUInt16(stream);
+            ushort s = BinaryHelper.ReadUInt16(stream);
             q.Class = (QClass)((ushort)(s << 1) >> 1);
             q.CacheFlush = ((ushort)q.Class) != s;
             return q;

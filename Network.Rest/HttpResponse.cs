@@ -9,7 +9,7 @@ using System.IO.Compression;
 namespace Network.Rest
 {
     public class HttpResponse<T> : HttpMessage, IClientResponse<T>, IServerResponse
-        where T : HttpResponse<T>,new()
+        where T : HttpResponse<T>, new()
     {
         public HttpResponse()
         {
@@ -76,6 +76,11 @@ namespace Network.Rest
 
         #region IResponse Members
 
+        public void WriteTo(Stream stream)
+        {
+            WriteTo(new BinaryWriter(stream));
+        }
+
         public void WriteTo(BinaryWriter writer)
         {
             writer.Write(Encoding.GetBytes(string.Format("{3} {0} {1}{2}", (int)ResponseCode, ResponseMessage, Environment.NewLine, Protocol)));
@@ -89,6 +94,11 @@ namespace Network.Rest
             Body.WriteTo(writer.BaseStream);
             writer.Write(Encoding.GetBytes(Environment.NewLine));
             writer.Write(Encoding.GetBytes(Environment.NewLine));
+        }
+
+        public T GetResponse(Stream s)
+        {
+            return GetResponse(new BinaryReader(s));
         }
 
         public T GetResponse(BinaryReader reader)

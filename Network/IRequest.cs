@@ -11,13 +11,23 @@ namespace Network
 
     public interface IClientRequest : IRequest
     {
-        void WriteTo(BinaryWriter stream);
+        void WriteTo(Stream stream);
         byte[] GetBytes();
+    }
+
+    public interface IClientRequestWriter : IClientRequest
+    {
+        void WriteTo(BinaryWriter writer);
     }
 
     public interface IServerRequest<RequestType> : IRequest
     {
-        RequestType GetRequest(BinaryReader stream);
+        RequestType GetRequest(Stream stream);
         RequestType GetRequest(byte[] requestBytes);
+    }
+
+    public interface IServerRequestReader<TRequest> : IServerRequest<TRequest>
+    {
+        TRequest GetRequest(BinaryReader writer);
     }
 }

@@ -39,8 +39,8 @@ namespace Network.Bonjour
 
         void MDnsServer_Started(object sender, EventArgs e)
         {
-            if (this.IsUdp)
-                server.MulticastLoopback = true;
+            //if (this.IsUdp)
+            //    server.MulticastLoopback = true;
         }
 
         public event ObjectEvent<Message> AnswerReceived;

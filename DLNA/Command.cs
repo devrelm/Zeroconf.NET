@@ -16,9 +16,9 @@ namespace Network.UPnP.DLNA
             HttpRequest request = base.BuildRequest();
             request.Headers["User-Agent"] = "Mozilla/4.0 (compatible; UPnP/1.0; Windows 9x)";
             request.ContentType = "text/xml; charset=\"utf-8\"";
-            request.Headers["Connection"] = "Close";
-            request.Headers["Cache-Control"] = "no-cache";
-            request.Headers["Pragma"] = "no-cache";
+            //request.Headers["Connection"] = "Close";
+            //request.Headers["Cache-Control"] = "no-cache";
+            //request.Headers["Pragma"] = "no-cache";
             return request;
         }
     }

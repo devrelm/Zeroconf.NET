@@ -26,12 +26,11 @@ namespace Network.UPnP
             protocols.Add(protocol);
             if (client == null)
             {
-                client = SsdpClient.CreateAndResolve(protocol);
-                client.QueryReceived += client_QueryReceived;
-                client.AnswerReceived += client_AnswerReceived;
+                client = new SsdpClient(0);
+                client.ResponseReceived += client_AnswerReceived;
+                client.StartUdp();
             }
-            else
-                client.Resolve(protocol);
+            client.Resolve(protocol);
         }
 
         void client_QueryReceived(HttpRequest item)
@@ -71,10 +70,10 @@ namespace Network.UPnP
             }
         }
 
-        void client_AnswerReceived(HttpResponse item)
+        void client_AnswerReceived(object sender, ClientEventArgs<HttpRequest, HttpResponse> e)
         {
 
-            Service s = Service.BuildService(item);
+            Service s = Service.BuildService(e.Response);
             if (s != null && ServiceFound != null)
                 ServiceFound(s);
         }
@@ -90,7 +89,8 @@ namespace Network.UPnP
 
         public void Dispose()
         {
-            client.Stop();
+            if (client != null)
+                client.Stop();
 
             if (services != null)
                 foreach (Service s in services)

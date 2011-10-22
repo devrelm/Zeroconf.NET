@@ -85,13 +85,9 @@ namespace Network
         protected void JoinMulticastGroup(IPAddress multicastAddr, byte timeToLive)
         {
             MulticastOption optionValue;
-            optionValue = client.GetSocketOption(SocketOptionLevel.IP, SocketOptionName.AddMembership) as MulticastOption;
-            if (optionValue == null)
-            {
-                optionValue = new MulticastOption(multicastAddr);
-                client.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.AddMembership, optionValue);
-                client.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.MulticastTimeToLive, timeToLive);
-            }
+            optionValue = new MulticastOption(multicastAddr);
+            client.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.AddMembership, optionValue);
+            client.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.MulticastTimeToLive, timeToLive);
         }
 
         protected bool expectMultipleResponses = false;
@@ -99,8 +95,8 @@ namespace Network
     }
 
     public abstract class Client<TRequest, TResponse> : Client
-        where TResponse : IClientResponse<TResponse>, new()
-        where TRequest : IClientRequest, new()
+        where TResponse : class,IClientResponse<TResponse>, new()
+        where TRequest : class,IClientRequest, new()
     {
         protected Client(Socket s, Server server)
             : base(s, server)
@@ -156,11 +152,15 @@ namespace Network
             }
             if (dataStream != null)
             {
-                BinaryWriter writer = new BinaryWriter(dataStream);
-                request.WriteTo(writer);
+                request.WriteTo(dataStream);
             }
             else
-                client.Send(request.GetBytes());
+            {
+                if (client.Connected)
+                    client.Send(request.GetBytes());
+                else
+                    client.SendTo(request.GetBytes(), endpoint);
+            }
         }
 
         public TResponse Send(TRequest request)
@@ -173,47 +173,48 @@ namespace Network
             SendOneWayInternal(request, endpoint);
             if (expectMultipleResponses && !Configuration.IsOneWayOnly)
             {
-                StartReceive();
+                StartReceive(request);
                 return default(TResponse);
             }
             else
-                return ReceiveResponse();
+                return ReceiveResponse(request);
         }
 
-        private void StartReceive()
+        private void StartReceive(TRequest request)
         {
-            Thread t = new Thread(new ThreadStart(Receive));
+            Thread t = new Thread(new ParameterizedThreadStart(Receive));
             try
             {
-                t.Start();
+                t.Start(request);
             }
             catch (SocketException)
             {
             }
         }
 
-        private void Receive()
+        private void Receive(object request)
         {
             while (expectMultipleResponses)
             {
-                OnResponseReceived(ReceiveResponse());
+                OnResponseReceived(ReceiveResponse((TRequest)request));
             }
         }
 
         public void Stop()
         {
             expectMultipleResponses = false;
+            client.Close();
         }
 
         protected abstract ClientEventArgs<TRequest, TResponse> GetEventArgs(TResponse response);
 
         private void OnResponseReceived(TResponse response)
         {
-            if (ResponseReceived != null)
+            if (ResponseReceived != null && response != null)
                 ResponseReceived(this, GetEventArgs(response));
         }
 
-        private TResponse ReceiveResponse()
+        private TResponse ReceiveResponse(TRequest request)
         {
             if (Configuration.IsOneWayOnly)
             {
@@ -221,8 +222,47 @@ namespace Network
                 client = null;
                 return default(TResponse);
             }
-            BinaryReader reader = new BinaryReader(dataStream);
-            TResponse result = new TResponse().GetResponse(reader);
+
+            Stream stream;
+            TResponse result;
+            try
+            {
+                if (dataStream == null)
+                {
+                    byte[] buffer = new byte[1024];
+                    MemoryStream ms = new MemoryStream();
+                    do
+                    {
+                        ms.Write(buffer, 0, client.Receive(buffer));
+                    }
+                    while (client.Available > 0);
+                    ms.Position = 0;
+                    stream = ms;
+                }
+                else
+                    stream = dataStream;
+
+                TResponse tempResponse = request as TResponse;
+                if (tempResponse == null)
+                    tempResponse = new TResponse();
+
+                result = tempResponse.GetResponse(stream);
+                if (dataStream == null)
+                {
+                    //Ensure not multiple responses were not read at once
+                    while (stream.Position != stream.Length)
+                    {
+                        OnResponseReceived(result);
+
+                        result = tempResponse.GetResponse(stream);
+                    }
+
+                }
+            }
+            catch (ObjectDisposedException)
+            {
+                return default(TResponse);
+            }
             if (Configuration.IsStateLess && IsTcp)
             {
                 client.Disconnect(false);

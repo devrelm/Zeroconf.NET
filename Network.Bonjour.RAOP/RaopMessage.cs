@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 
 namespace Network.Bonjour.RAOP
 {
@@ -20,6 +21,11 @@ namespace Network.Bonjour.RAOP
         public byte[] Sample { get; set; }
 
         #region IClientRequest Members
+
+        public void WriteTo(Stream stream)
+        {
+            WriteTo(new BinaryWriter(stream));
+        }
 
         public void WriteTo(System.IO.BinaryWriter stream)
         {
@@ -42,6 +48,11 @@ namespace Network.Bonjour.RAOP
         #endregion
 
         #region IClientResponse<RaopMessage> Members
+
+        public RaopMessage GetResponse(Stream stream)
+        {
+            throw new NotImplementedException();
+        }
 
         public RaopMessage GetResponse(System.IO.BinaryReader stream)
         {

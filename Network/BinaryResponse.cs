@@ -18,10 +18,10 @@ namespace Network
 
         #region IResponse Members
 
-        public void WriteTo(BinaryWriter target)
+        public void WriteTo(Stream target)
         {
             this.stream.Position = 0;
-            this.stream.WriteTo(target.BaseStream);
+            this.stream.WriteTo(target);
         }
 
         public byte[] GetBytes()
@@ -33,15 +33,16 @@ namespace Network
 
         #region IResponse<BinaryResponse> Members
 
-        public BinaryResponse GetResponse(BinaryReader stream)
+        public BinaryResponse GetResponse(Stream stream)
         {
-            byte[] buffer;
+            byte[] buffer = new byte[1024];
+            int lengthRead = 0;
             do
             {
-                buffer = stream.ReadBytes(1024);
-                this.stream.Write(buffer, 0, buffer.Length);
+                lengthRead = stream.Read(buffer, 0, buffer.Length);
+                this.stream.Write(buffer, 0, lengthRead);
             }
-            while (buffer.Length == 1024);
+            while (lengthRead == 1024);
             return this;
         }
 
@@ -52,49 +53,5 @@ namespace Network
         }
 
         #endregion
-    }
-
-    public static class BinaryHelper
-    {
-        public static byte[] GetBytes(IServerResponse response)
-        {
-            using (MemoryStream stream = new MemoryStream())
-            {
-                response.WriteTo(new BinaryWriter(stream));
-                return stream.ToArray();
-            }
-        }
-
-        public static byte[] GetBytes(IClientRequest response)
-        {
-            using (MemoryStream stream = new MemoryStream())
-            {
-                response.WriteTo(new BinaryWriter(stream));
-                return stream.ToArray();
-            }
-        }
-
-        public static string ReadLine(BinaryReader reader)
-        {
-            bool stopReading = false;
-            List<char> chars = new List<char>();
-            char[] readChar = reader.ReadChars(2);
-            if (readChar.Length == 0)
-                return null;
-
-            if (new string(readChar) == Environment.NewLine)
-                stopReading = true;
-
-            while (!stopReading)
-            {
-                chars.Add(readChar[0]);
-                readChar[0] = readChar[1];
-                readChar[1] = reader.ReadChar();
-                if (new string(readChar) == Environment.NewLine)
-                    stopReading = true;
-            }
-
-            return new string(chars.ToArray());
-        }
     }
 }

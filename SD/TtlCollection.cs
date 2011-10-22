@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 namespace Network.ZeroConf
 {
@@ -9,6 +10,25 @@ namespace Network.ZeroConf
         where T : IExpirable
     {
         SortedList<DateTime, IList<T>> expirables = new SortedList<DateTime, IList<T>>();
+
+        public event Action<T> ItemExpired;
+
+        Timer timerBeforeNextExpiration;
+
+        public TtlCollection()
+        {
+            timerBeforeNextExpiration = new Timer(Tick);
+        }
+
+        private void Tick(object state)
+        {
+            List<T> removedItems = EnsureUpToDate();
+            if (removedItems.Count > 0 && ItemExpired != null)
+            {
+                foreach (T item in removedItems)
+                    ItemExpired(item);
+            }
+        }
 
         #region ICollection<T> Members
 
@@ -19,6 +39,8 @@ namespace Network.ZeroConf
                 expirables[expiration].Add(item);
             else
                 expirables.Add(expiration, new List<T>() { item });
+            if (NextExpiration > expiration)
+                NextExpiration = expiration;
         }
 
         public void Clear()
@@ -75,7 +97,6 @@ namespace Network.ZeroConf
 
         public IEnumerator<T> GetEnumerator()
         {
-            EnsureUpToDate();
             foreach (IList<T> expirables in this.expirables.Values)
             {
                 foreach (T expirable in expirables)
@@ -83,10 +104,20 @@ namespace Network.ZeroConf
             }
         }
 
-        private void EnsureUpToDate()
+        private List<T> EnsureUpToDate()
         {
+            List<T> removedItems = new List<T>();
             while (expirables.First().Key < DateTime.Now)
+            {
+                removedItems.AddRange(expirables.First().Value);
                 expirables.Remove(expirables.First().Key);
+            }
+            foreach (T item in removedItems)
+            {
+                if (!item.IsOutDated)
+                    Add(item);
+            }
+            return removedItems;
         }
 
         #endregion
@@ -99,5 +130,18 @@ namespace Network.ZeroConf
         }
 
         #endregion
+
+        private DateTime nextExpiration;
+
+        public DateTime NextExpiration
+        {
+            get { return nextExpiration; }
+            set
+            {
+                nextExpiration = value;
+                timerBeforeNextExpiration.Change((DateTime.Now - nextExpiration), new TimeSpan(0, 0, 0, 0, -1));
+            }
+        }
+
     }
 }

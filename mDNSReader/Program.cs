@@ -15,11 +15,11 @@ namespace mDNSReader
         {
             BonjourServiceResolver bsr = new BonjourServiceResolver();
             bsr.ServiceFound += new Network.ZeroConf.ObjectEvent<Network.ZeroConf.IService>(bsr_ServiceFound);
-            bsr.Resolve("_raop._tcp.");
+            bsr.Resolve("_airport._tcp.local");
             Console.ReadLine();
             bsr.Dispose();
             //Service s = new Service();
-            //s.AddAddress(new Network.Dns.EndPoint() { DomainName = "ASPERGE.local.", Port = 50508, Addresses = new List<IPAddress>() { IPAddress.Parse("192.168.1.19") } });
+            //s.AddAddress(new Network.Dns.EndPoint() { DomainName = "AIL.local.", Port = 50508, Addresses = Network.ZeroConf.ResolverHelper.GetEndPoint().Addresses });
             //s.Protocol = "_touch-remote._tcp.local.";
             //s.Name = "MyName";
             //s.HostName = "ASPERGE.local.";

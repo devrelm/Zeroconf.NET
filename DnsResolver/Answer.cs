@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 
 namespace Network.Dns
 {
@@ -27,26 +28,21 @@ namespace Network.Dns
         {
             Answer a = new Answer();
             a.DomainName = DomainName.Get(reader);
-            ushort s;
-            Message.FromBytes(reader.ReadBytes(2), out s);
-            a.Type = (Type)s;
-            Message.FromBytes(reader.ReadBytes(2), out s);
-            a.Class = (Class)s;
-            uint ttl;
-            Message.FromBytes(reader.ReadBytes(4), out ttl);
-            a.Ttl = ttl;
+            a.Type = (Type)BinaryHelper.ReadUInt16(reader);
+            a.Class = (Class)BinaryHelper.ReadUInt16(reader);
+            a.Ttl = BinaryHelper.ReadUInt32(reader);
             a.ResponseData = ResponseData.Get(a.Type, reader);
             return a;
         }
 
-        public void WriteTo(System.IO.BinaryWriter writer)
+        public void WriteTo(Stream stream)
         {
-            DomainName.WriteTo(writer);
-            writer.Write(Message.ToBytes((ushort)Type));
-            writer.Write(Message.ToBytes((ushort)Class));
-            writer.Write(Message.ToBytes(Ttl));
+            DomainName.WriteTo(stream);
+            BinaryHelper.Write(stream, (ushort)Type);
+            BinaryHelper.Write(stream, (ushort)Class);
+            BinaryHelper.Write(stream, Ttl);
             if (ResponseData != null)
-                ResponseData.WriteTo(writer);
+                ResponseData.WriteTo(stream);
         }
     }
 }

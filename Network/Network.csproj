@@ -69,12 +69,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BinaryHelper.cs" />
     <Compile Include="BinaryRequest.cs" />
     <Compile Include="BinaryResponse.cs" />
     <Compile Include="Client.cs" />
     <Compile Include="Command.cs" />
     <Compile Include="CommandDescriptor.cs" />
     <Compile Include="CommandFactory.cs" />
+    <Compile Include="Message.cs" />
     <Compile Include="IRequest.cs" />
     <Compile Include="IResponse.cs" />
     <Compile Include="NetworkConfig.cs" />
