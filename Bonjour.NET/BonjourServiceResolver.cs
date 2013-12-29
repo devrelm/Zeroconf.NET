@@ -122,7 +122,7 @@ namespace Network.Bonjour
 
             foreach (var service in services)
             {
-                if (service.State == State.Updated)
+                if (service.State == State.Updated || service.State == State.Added)
                 {
                     if (ServiceFound != null)
                         ServiceFound(service);

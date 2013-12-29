@@ -190,7 +190,8 @@ namespace Network.Bonjour
                 {
                     if (((string)q.DomainName).EndsWith(Protocol))
                     {
-                        FillMessage(item, Ttl);
+                        //FillMessage(item, Ttl);
+                        Renew(500);
                     }
                 }
             }
