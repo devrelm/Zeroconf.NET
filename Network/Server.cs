@@ -5,21 +5,22 @@ using System.Net.Sockets;
 using System.IO;
 using System.Net;
 using System.Collections;
+using System.Linq;
 
 namespace Network
 {
     public abstract class Server : IServiceProvider
     {
-        public Server(IPEndPoint host)
+        public Server(params IPEndPoint[] hosts)
         {
-            Host = host;
+            Hosts = hosts;
         }
 
-        public IPEndPoint Host { get; protected set; }
+        public IPEndPoint[] Hosts { get; protected set; }
 
         //protected TcpListener tcp;
         //protected UdpClient udp;
-        protected Socket server;
+        protected Socket[] servers;
         public bool IsTcp { get; set; }
         public bool IsUdp { get; set; }
         public bool IsStarted { get; set; }
@@ -31,33 +32,57 @@ namespace Network
         {
             if (IsStarted)
                 throw new NotSupportedException("You cannot start the server twice");
-            if (IsTcp)
-                server = new Socket(Host.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            if (IsUdp)
-                server = new Socket(Host.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
+            IDictionary<Socket, IPEndPoint> servers = new Dictionary<Socket, IPEndPoint>();
+            foreach (var host in Hosts.Where(ep => !IsMulticast(ep.Address)))
+            {
+                Socket server = null;
+                if (IsTcp)
+                    server = new Socket(host.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                if (IsUdp)
+                    server = new Socket(host.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
+                servers.Add(server, host);
+            }
+            this.servers = servers.Keys.ToArray();
+            foreach (var host in Hosts.Where(ep => IsMulticast(ep.Address)))
+            {
+                foreach (var kvp in servers.Where(kvp => kvp.Value.AddressFamily == host.AddressFamily))
+                {
+                    kvp.Key.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+                    JoinMulticastGroup(kvp.Key, host.Address, 5);
+                };
+            }
+            foreach (var kvp in servers)
+                kvp.Key.Bind(kvp.Value);
 
-            if (!IsMulticast(Host.Address))
-            {
-                server.Bind(Host);
-            }
-            else
-            {
-                server.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-                server.Bind(new IPEndPoint(IPAddress.Any, Host.Port));
-                JoinMulticastGroup(Host.Address, 5);
-            }
             if (IsTcp)
-                server.Listen(10);
+            {
+                foreach (var server in this.servers)
+                    server.Listen(10);
+            }
             OnStart();
             IsStarted = true;
             if (IsTcp)
-                server.BeginAccept(ReceiveRequest, null);
+            {
+                foreach (var server in this.servers)
+                    server.BeginAccept(ReceiveRequest, server);
+            }
             if (IsUdp)
             {
-                byte[] buffer = new byte[65536];
-                EndPoint remote = new IPEndPoint(IPAddress.Any, 0); ;
-                server.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref remote, ReceiveRequest, buffer);
+                foreach (var server in this.servers)
+                {
+                    UdpAsyncState state = new UdpAsyncState();
+                    state.buffer = new byte[65536];
+                    state.server = server;
+                    EndPoint remote = new IPEndPoint(server.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, 0); ;
+                    server.BeginReceiveFrom(state.buffer, 0, state.buffer.Length, SocketFlags.None, ref remote, ReceiveRequest, state);
+                }
             }
+        }
+
+        private class UdpAsyncState
+        {
+            public Socket server;
+            public byte[] buffer;
         }
 
         public void StartTcp()
@@ -74,7 +99,7 @@ namespace Network
             Start();
         }
 
-        private void JoinMulticastGroup(IPAddress multicastAddr, byte timeToLive)
+        private static void JoinMulticastGroup(Socket server, IPAddress multicastAddr, byte timeToLive)
         {
             MulticastOption optionValue = new MulticastOption(multicastAddr);
             server.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.AddMembership, optionValue);
@@ -93,10 +118,10 @@ namespace Network
             {
                 if (IsTcp)
                 {
-                    Socket client = server.EndAccept(result);
+                    Socket client = ((Socket)result.AsyncState).EndAccept(result);
 
                     if (IsStarted)
-                        server.BeginAccept(ReceiveRequest, null);
+                        ((Socket)result.AsyncState).BeginAccept(ReceiveRequest, null);
 
                     Treat(new NetworkStream(client), client.RemoteEndPoint as IPEndPoint);
                     if (IsStateLess)
@@ -108,17 +133,18 @@ namespace Network
                 if (IsUdp)
                 {
                     EndPoint remote = new IPEndPoint(IPAddress.Any, 0);
-                    int length = server.EndReceiveFrom(result, ref remote);
-                    EndPoint client = remote;
-                    buffer = result.AsyncState as byte[];
+                    var state = ((UdpAsyncState)result.AsyncState);
+                    int length = state.server.EndReceiveFrom(result, ref remote);
+                    IPEndPoint client = (IPEndPoint)remote;
+                    buffer = state.buffer;
                     byte[] bytes = new byte[length];
                     Buffer.BlockCopy(buffer, 0, bytes, 0, length);
                     if (IsStarted)
                     {
                         remote = new IPEndPoint(IPAddress.Any, 0);
-                        server.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref remote, ReceiveRequest, buffer);
+                        state.server.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref remote, ReceiveRequest, result.AsyncState);
                     }
-                    Treat(new MemoryStream(bytes), client as IPEndPoint);
+                    Treat(new MemoryStream(bytes), client);
                 }
 
             }
@@ -131,13 +157,13 @@ namespace Network
                 if (IsStarted)
                 {
                     if (IsTcp)
-                        server.BeginAccept(ReceiveRequest, null);
+                        ((Socket)result.AsyncState).BeginAccept(ReceiveRequest, result.AsyncState);
                     if (IsUdp)
                     {
                         EndPoint remote = new IPEndPoint(IPAddress.Any, 0);
                         if (buffer == null)
-                            buffer = new byte[65536];
-                        server.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref remote, ReceiveRequest, buffer);
+                            ((UdpAsyncState)result.AsyncState).buffer = buffer = new byte[65536];
+                        ((UdpAsyncState)result.AsyncState).server.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref remote, ReceiveRequest, result.AsyncState);
                     }
                 }
             }
@@ -149,7 +175,8 @@ namespace Network
         {
             if (IsStarted)
             {
-                server.Close();
+                foreach (var server in servers)
+                    server.Close();
                 OnStop();
                 IsStarted = false;
             }
@@ -210,10 +237,9 @@ namespace Network
         where TRequest : IServerRequest<TRequest>, new()
     {
         internal Server(Socket server, Client client)
-            : this(0)
+            : this(((IPEndPoint)server.LocalEndPoint).Address, 0)
         {
-            this.server = server;
-            Host = server.LocalEndPoint as IPEndPoint;
+            this.servers = new[] { server };
             IsStarted = server.IsBound;
             IsTcp = client.IsTcp;
             IsUdp = client.IsUdp;
@@ -231,8 +257,8 @@ namespace Network
 
         }
 
-        public Server(IPEndPoint host)
-            : base(host)
+        public Server(params IPEndPoint[] hosts)
+            : base(hosts)
         {
         }
 
@@ -272,11 +298,12 @@ namespace Network
 
         public void Send(TResponse response, IPEndPoint client)
         {
-            if (server.IsBound)
+            MemoryStream stream = new MemoryStream();
+            Send(response, stream);
+            foreach (var server in servers)
             {
-                MemoryStream stream = new MemoryStream();
-                Send(response, stream);
-                server.SendTo(stream.ToArray(), client);
+                if (server.IsBound && server.AddressFamily == client.AddressFamily)
+                    server.SendTo(stream.ToArray(), client);
             }
         }
 

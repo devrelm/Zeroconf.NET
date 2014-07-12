@@ -21,12 +21,12 @@ namespace Network.UPnP
 
         public event ObjectEvent<IService> ServiceRemoved;
 
-        public void Resolve(string protocol)
+        public void Resolve(string protocol, params IPEndPoint[] endpoints)
         {
             protocols.Add(protocol);
             if (client == null)
             {
-                client = new SsdpClient(0);
+                client = new SsdpClient(0, endpoints);
                 client.ResponseReceived += client_AnswerReceived;
                 client.StartUdp();
             }

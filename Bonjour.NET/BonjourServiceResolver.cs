@@ -36,7 +36,7 @@ namespace Network.Bonjour
 
         #region IServiceResolver Members
 
-        public void Resolve(string protocol)
+        public void Resolve(string protocol, params IPEndPoint[] endpoints)
         {
             if (!protocol.EndsWith("."))
             {
@@ -53,7 +53,7 @@ namespace Network.Bonjour
             protocols.Add(protocol);
             if (client == null)
             {
-                client = new MDnsServer();
+                client = new MDnsServer(endpoints);
                 client.AnswerReceived += client_AnswerReceived;
                 client.Resolve(protocol);
             }

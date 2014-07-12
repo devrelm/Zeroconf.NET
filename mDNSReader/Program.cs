@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Net;
 using System.Threading;
 using Network.Bonjour;
+using System.Net.NetworkInformation;
 
 namespace mDNSReader
 {
@@ -15,7 +16,7 @@ namespace mDNSReader
         {
             BonjourServiceResolver bsr = new BonjourServiceResolver();
             bsr.ServiceFound += new Network.ZeroConf.ObjectEvent<Network.ZeroConf.IService>(bsr_ServiceFound);
-            bsr.Resolve("_airport._tcp.local");
+            bsr.Resolve("_airport._tcp.local", NetworkInterface.GetAllNetworkInterfaces().SelectMany(nic => nic.GetIPProperties().UnicastAddresses.Where(ip => ip.IsDnsEligible).Select(ip => ip.Address)).Select(ip => new IPEndPoint(ip, 0)).ToArray());
             Console.ReadLine();
             bsr.Dispose();
             //Service s = new Service();

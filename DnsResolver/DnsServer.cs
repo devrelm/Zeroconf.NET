@@ -20,8 +20,8 @@ namespace Network.Dns
 
         }
 
-        public DnsServer(IPEndPoint host)
-            : base(host)
+        public DnsServer(params IPEndPoint[] hosts)
+            : base(hosts)
         {
         }
 

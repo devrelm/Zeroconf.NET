@@ -19,7 +19,7 @@ namespace Network.UPnP
 
         private IPEndPoint local;
 
-        public SsdpClient(ushort port)
+        public SsdpClient(ushort port, params IPEndPoint[] endpoints)
             : base(new NetworkConfig(true, false, true))
         {
             StartUdp(IPAddress.Any, port);

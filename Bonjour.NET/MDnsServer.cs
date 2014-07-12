@@ -24,9 +24,13 @@ namespace Network.Bonjour
 
         }
 
-        public MDnsServer(IPEndPoint host)
-            : base(host)
+        public MDnsServer(params IPEndPoint[] hosts)
+            : base(hosts)
         {
+            var localEndPoint = new[] { EndPoint };
+            if (Hosts == null)
+                Hosts = new[] { new IPEndPoint(IPAddress.Any, 0) };
+            Hosts = Hosts.Union(localEndPoint).ToArray();
         }
 
 

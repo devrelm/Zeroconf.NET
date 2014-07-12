@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Text;
 using System.Threading;
 
@@ -41,9 +42,9 @@ namespace Network.ZeroConf
 
         public event ObjectEvent<IService> ServiceRemoved;
 
-        public void Resolve(string protocol)
+        public void Resolve(string protocol, params IPEndPoint[] endpoint)
         {
-            resolvers.ForEach(delegate(IServiceResolver resolver) { resolver.Resolve(protocol); });
+            resolvers.ForEach(delegate(IServiceResolver resolver) { resolver.Resolve(protocol, endpoint); });
         }
 
         public IList<IService> Resolve(string protocol, TimeSpan timeout, int minCountServices, int maxCountServices)
