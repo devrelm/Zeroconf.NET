@@ -84,7 +84,7 @@
     </ProjectReference>
     <ProjectReference Include="..\Network\Network.csproj">
       <Project>{C05DF064-DD81-49AE-91D2-9D8BBCC76F1F}</Project>
-      <Name>Network %28Network\Network%29</Name>
+      <Name>Network</Name>
     </ProjectReference>
     <ProjectReference Include="..\UPnP\Network.UPnP.Services.csproj">
       <Project>{39E23211-B902-4FE9-8A61-264F81D63864}</Project>

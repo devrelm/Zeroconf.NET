@@ -53,7 +53,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Network\Network.csproj">
       <Project>{C05DF064-DD81-49AE-91D2-9D8BBCC76F1F}</Project>
-      <Name>Network %28Network\Network%29</Name>
+      <Name>Network</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

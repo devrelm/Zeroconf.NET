@@ -102,7 +102,7 @@
     </ProjectReference>
     <ProjectReference Include="..\Network\Network.csproj">
       <Project>{C05DF064-DD81-49AE-91D2-9D8BBCC76F1F}</Project>
-      <Name>Network %28Network\Network%29</Name>
+      <Name>Network</Name>
     </ProjectReference>
     <ProjectReference Include="..\SD\Network.ZeroConf.csproj">
       <Project>{2B2D41E0-DBC7-4075-873C-394D02448281}</Project>
