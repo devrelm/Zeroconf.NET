@@ -91,6 +91,9 @@ ipch/
 *.vsp
 *.vspx
 
+# Visual Studio Dependency Graph
+*.dgml
+
 # Guidance Automation Toolkit
 *.gpState
 
