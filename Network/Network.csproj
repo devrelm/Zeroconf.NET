@@ -8,7 +8,7 @@
     <ProjectGuid>{C05DF064-DD81-49AE-91D2-9D8BBCC76F1F}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Network</RootNamespace>
+    <RootNamespace>Zeroconf</RootNamespace>
     <AssemblyName>Network</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>

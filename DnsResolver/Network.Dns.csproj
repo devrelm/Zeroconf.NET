@@ -8,8 +8,8 @@
     <ProjectGuid>{36528547-53DC-46CD-8C97-1BAE69262B00}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>DnsResolver</RootNamespace>
-    <AssemblyName>DnsResolver</AssemblyName>
+    <RootNamespace>Network.Dns</RootNamespace>
+    <AssemblyName>Network.Dns</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SccProjectName>SAK</SccProjectName>
